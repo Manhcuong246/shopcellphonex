@@ -1,0 +1,4 @@
+# Đặt ảnh sản phẩm/biến thể tại đây.
+# Tên file theo quy tắc: {slug-san-pham}-{mau-mau}-{mau}.jpg
+# Ví dụ: iphone-15-pro-max-256gb-titan-tu-nhien.jpg
+# Chạy trong backend: npm run seed:products để xem danh sách tên file cần có.
