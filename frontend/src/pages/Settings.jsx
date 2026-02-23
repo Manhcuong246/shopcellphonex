@@ -100,7 +100,6 @@ export function Settings() {
     <div className="max-w-2xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold">Cài đặt</h1>
 
-      {/* Avatar */}
       <Card>
         <CardHeader>
           <CardTitle>Ảnh đại diện</CardTitle>
@@ -129,7 +128,6 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Thông tin cá nhân */}
       <Card>
         <CardHeader>
           <CardTitle>Thông tin cá nhân</CardTitle>
@@ -182,7 +180,6 @@ export function Settings() {
         </CardContent>
       </Card>
 
-      {/* Đổi mật khẩu */}
       <Card>
         <CardHeader>
           <CardTitle>Đổi mật khẩu</CardTitle>

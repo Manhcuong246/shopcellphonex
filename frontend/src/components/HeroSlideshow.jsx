@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-// Ảnh hero: chỉ dùng ảnh sản phẩm, không dải màu (overlay tối nhẹ bên trái để chữ rõ)
 const slides = [
   {
     id: 1,
@@ -52,7 +51,6 @@ export function HeroSlideshow() {
             i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
           )}
         >
-          {/* Ảnh nền sản phẩm - không dải màu, chỉ lớp tối nhẹ bên trái cho chữ */}
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${slide.image})` }}

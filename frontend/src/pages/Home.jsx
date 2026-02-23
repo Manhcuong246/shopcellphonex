@@ -25,10 +25,8 @@ export function Home() {
 
   return (
     <div className="space-y-8 sm:space-y-10 md:space-y-14">
-      {/* Hero Slideshow */}
       <HeroSlideshow />
 
-      {/* Banner phụ: chỉ ảnh + overlay tối nhẹ cho chữ, không dải màu */}
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <Link
           to="/products?category=dien-thoai"
@@ -54,7 +52,6 @@ export function Home() {
         </Link>
       </section>
 
-      {/* Danh mục */}
       {categories.length > 0 && (
         <section>
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">Danh mục</h2>
@@ -78,7 +75,6 @@ export function Home() {
         </section>
       )}
 
-      {/* Sản phẩm nổi bật */}
       <section>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4 sm:mb-6">
           <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Sản phẩm nổi bật</h2>

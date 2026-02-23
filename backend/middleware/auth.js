@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) return res.status(401).json({});
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({});
   try {
-    const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { ...decoded, role: decoded.role === 'user' ? 'customer' : decoded.role };
     next();
   } catch {
@@ -13,22 +13,16 @@ const auth = (req, res, next) => {
 };
 
 const optionalAuth = (req, res, next) => {
-  if (req.headers.authorization?.startsWith('Bearer ')) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (token) {
     try {
-      req.user = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
     } catch {}
   }
   next();
 };
 
-const adminOnly = (req, res, next) => {
-  if (req.user?.role === 'admin') return next();
-  res.status(403).json({});
-};
-
-const staffOnly = (req, res, next) => {
-  if (req.user && (req.user.role === 'staff' || req.user.role === 'admin')) return next();
-  res.status(403).json({});
-};
+const adminOnly = (req, res, next) => (req.user?.role === 'admin' ? next() : res.status(403).json({}));
+const staffOnly = (req, res, next) => ((req.user?.role === 'staff' || req.user?.role === 'admin') ? next() : res.status(403).json({}));
 
 module.exports = { auth, optionalAuth, adminOnly, staffOnly };

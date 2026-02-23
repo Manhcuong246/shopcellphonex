@@ -1,11 +1,8 @@
 const express = require('express');
-const db = require('../config/db');
+const categoryController = require('../controllers/categoryController');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  const [rows] = await db.query('SELECT * FROM categories ORDER BY name');
-  res.json(rows);
-});
+router.get('/', categoryController.list);
 
 module.exports = router;

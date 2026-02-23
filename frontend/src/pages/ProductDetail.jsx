@@ -74,7 +74,6 @@ export function ProductDetail() {
     return match || selectedVariant;
   }, [product, selectedVariant]);
 
-  // Danh sách ảnh slideshow: ảnh biến thể đang chọn đầu tiên, rồi ảnh các biến thể khác, cuối là ảnh product
   const slideshowImages = useMemo(() => {
     if (!product) return [];
     const seen = new Set();
@@ -147,7 +146,6 @@ export function ProductDetail() {
     <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
       <Card className="border-neutral-200 shadow-sm overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 p-4 sm:p-6 md:p-10">
-          {/* Slideshow ảnh sản phẩm - mỗi biến thể dùng đúng ảnh của nó */}
           <div className="relative min-w-0 overflow-visible">
             <div className="aspect-square rounded-xl bg-gradient-to-b from-muted/80 to-muted flex items-center justify-center min-h-0 overflow-hidden">
               {hasValidSlide && !slideImageError ? (
@@ -179,7 +177,6 @@ export function ProductDetail() {
                 </button>
               </>
             )}
-            {/* Ô vuông nhỏ thể hiện các ảnh thêm / biến thể */}
             <div className="flex flex-wrap justify-center gap-2 mt-3 overflow-visible">
               {slideshowImages.map((url, i) => {
                 const isSelected = i === slideIndex;
@@ -223,7 +220,6 @@ export function ProductDetail() {
             )}
           </div>
 
-          {/* Thông tin */}
           <div className="flex flex-col">
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               {product.brand}
@@ -339,7 +335,6 @@ export function ProductDetail() {
         </div>
       </Card>
 
-      {/* Bình luận */}
       <Card>
         <CardContent className="p-4 sm:p-6">
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 mb-3 sm:mb-4">

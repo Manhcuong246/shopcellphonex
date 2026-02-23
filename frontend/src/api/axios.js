@@ -1,74 +1,53 @@
 import axios from 'axios';
 
+const TOKEN_KEY = 'token';
+
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true, // gửi httpOnly cookie (refresh_token) khi gọi API
+  withCredentials: true,
 });
-
-const tokenRef = { current: null };
-
-export function setAccessToken(token) {
-  tokenRef.current = token;
-}
 
 api.interceptors.request.use((config) => {
-  if (tokenRef.current) config.headers.Authorization = `Bearer ${tokenRef.current}`;
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-let isRefreshing = false;
-let failedQueue = [];
-
-function processQueue(err, token = null) {
-  failedQueue.forEach((prom) => (token ? prom.resolve(token) : prom.reject(err)));
-  failedQueue = [];
-}
 
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
     const originalRequest = err.config;
-
-    if (err.response?.status !== 401 || originalRequest._retry) {
+    if (err.response?.status !== 401) return Promise.reject(err);
+    if (originalRequest._retry) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('auth-logout'));
       return Promise.reject(err);
     }
-
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
-      })
-        .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
-        })
-        .catch((e) => Promise.reject(e));
-    }
-
     originalRequest._retry = true;
-    isRefreshing = true;
-
     try {
       const { data } = await api.post('/auth/refresh-token');
-      const newToken = data.token;
-      setAccessToken(newToken);
-      processQueue(null, newToken);
-      if (typeof window !== 'undefined' && window.__onAccessTokenRefreshed) {
-        window.__onAccessTokenRefreshed(newToken);
+      if (data.token) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+        originalRequest.headers.Authorization = `Bearer ${data.token}`;
+        return api(originalRequest);
       }
-      originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      return api(originalRequest);
-    } catch (refreshErr) {
-      processQueue(refreshErr, null);
-      setAccessToken(null);
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('auth-logout'));
-      }
-      return Promise.reject(refreshErr);
-    } finally {
-      isRefreshing = false;
-    }
+    } catch (_) {}
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth-logout'));
+    return Promise.reject(err);
   }
 );
+
+export function setAccessToken(token) {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+}
+
+export function getAccessToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
 
 export default api;

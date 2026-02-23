@@ -1,12 +1,14 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import api, { setAccessToken } from '@/api/axios';
+import { createContext, useEffect, useState, useCallback } from 'react';
+import api, { setAccessToken, getAccessToken } from '@/api/axios';
 
 export const AuthContext = createContext(null);
+
+const USER_KEY = 'user';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('user');
+      const saved = localStorage.getItem(USER_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
@@ -18,54 +20,39 @@ export function AuthProvider({ children }) {
     try {
       const { data } = await api.get('/auth/me');
       setUser(data);
-      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem(USER_KEY, JSON.stringify(data));
     } catch {
       setUser(null);
       setAccessToken(null);
-      localStorage.removeItem('user');
+      localStorage.removeItem(USER_KEY);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const tryRefreshThenFetchUser = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.post('/auth/refresh-token');
-      if (data.token) {
-        setAccessToken(data.token);
+  useEffect(() => {
+    async function init() {
+      if (getAccessToken()) {
         await fetchUser();
-      } else {
-        setUser(null);
-        setAccessToken(null);
-        localStorage.removeItem('user');
+        return;
+      }
+      try {
+        const { data } = await api.post('/auth/refresh-token');
+        if (data.token) {
+          setAccessToken(data.token);
+          await fetchUser();
+        } else {
+          setLoading(false);
+        }
+      } catch {
         setLoading(false);
       }
-    } catch {
-      setUser(null);
-      setAccessToken(null);
-      localStorage.removeItem('user');
-      setLoading(false);
     }
+    init();
   }, [fetchUser]);
 
   useEffect(() => {
-    tryRefreshThenFetchUser();
-  }, []);
-
-  useEffect(() => {
-    window.__onAccessTokenRefreshed = (token) => {
-      setAccessToken(token);
-    };
-    return () => { delete window.__onAccessTokenRefreshed; };
-  }, []);
-
-  useEffect(() => {
-    const onLogout = () => {
-      setUser(null);
-      setAccessToken(null);
-      localStorage.removeItem('user');
-    };
+    const onLogout = () => setUser(null);
     window.addEventListener('auth-logout', onLogout);
     return () => window.removeEventListener('auth-logout', onLogout);
   }, []);
@@ -73,7 +60,7 @@ export function AuthProvider({ children }) {
   const login = useCallback((token, userData) => {
     setAccessToken(token);
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   }, []);
 
   const logout = useCallback(async () => {
@@ -82,7 +69,7 @@ export function AuthProvider({ children }) {
     } catch (_) {}
     setAccessToken(null);
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem(USER_KEY);
   }, []);
 
   return (

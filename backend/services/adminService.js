@@ -1,16 +1,17 @@
 const db = require('../config/db');
-const { slugify } = require('../lib/slugify');
 const staffService = require('./staffService');
 
+function toSlug(s) {
+  return (s || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '') || '';
+}
+
 async function getStats() {
-  // Doanh thu theo ngày (danh sách nhiều dòng)
   const [revenueRows] = await db.query(
     `SELECT DATE(created_at) as date, SUM(total) as total, COUNT(*) as count
      FROM orders WHERE status NOT IN ('cancelled') AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
      GROUP BY DATE(created_at) ORDER BY date`
   );
 
-  // Thống kê tổng quan (chỉ lấy 1 dòng)
   const [summaryRows] = await db.query(
     `SELECT
        (SELECT COALESCE(SUM(total), 0) FROM orders WHERE status NOT IN ('cancelled') AND DATE(created_at) = CURDATE()) as today_revenue,
@@ -21,7 +22,6 @@ async function getStats() {
   );
   const summary = summaryRows[0];
 
-  // Top sản phẩm bán chạy (nhiều dòng)
   const [topProductRows] = await db.query(
     `SELECT oi.product_name, oi.variant_label, SUM(oi.quantity) as sold, SUM(oi.price * oi.quantity) as revenue
      FROM order_items oi JOIN orders o ON o.id = oi.order_id
@@ -29,7 +29,6 @@ async function getStats() {
      GROUP BY oi.product_id, oi.variant_id ORDER BY sold DESC LIMIT 10`
   );
 
-  // Đếm đơn theo trạng thái (nhiều dòng)
   const [statusCountRows] = await db.query('SELECT status, COUNT(*) as count FROM orders GROUP BY status');
 
   return {
@@ -71,7 +70,7 @@ async function listCategories() {
 async function createCategory(body) {
   const { name, slug: slugInput, description } = body;
   if (!name?.trim()) throw new Error('BadRequest');
-  let slug = (slugInput?.trim()) ? slugify(slugInput) : slugify(name);
+  let slug = (slugInput?.trim()) ? toSlug(slugInput) : toSlug(name);
   if (!slug) slug = 'dm-' + Date.now();
   const [ex] = await db.query('SELECT id FROM categories WHERE slug = ?', [slug]);
   if (ex?.length) slug = slug + '-' + Date.now();
@@ -87,7 +86,7 @@ async function updateCategory(id, body) {
   const updates = [];
   const params = [];
   if (name !== undefined) { updates.push('name = ?'); params.push(name.trim()); }
-  if (slugInput !== undefined) { updates.push('slug = ?'); params.push(slugify(slugInput.trim()) || ex[0].slug); }
+  if (slugInput !== undefined) { updates.push('slug = ?'); params.push(toSlug(slugInput.trim()) || ex[0].slug); }
   if (description !== undefined) { updates.push('description = ?'); params.push(description || null); }
   if (updates.length) {
     params.push(id);

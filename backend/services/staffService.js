@@ -1,8 +1,10 @@
 const db = require('../config/db');
-const { slugify } = require('../lib/slugify');
+
+function toSlug(s) {
+  return (s || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '') || '';
+}
 
 async function getStats() {
-  // Thống kê tổng quan (1 dòng)
   const [summaryRows] = await db.query(
     `SELECT (SELECT COUNT(*) FROM orders WHERE status = 'pending') as pending_orders,
       (SELECT COUNT(*) FROM orders WHERE status NOT IN ('cancelled') AND DATE(created_at) = CURDATE()) as today_orders,
@@ -10,7 +12,6 @@ async function getStats() {
   );
   const summary = summaryRows[0];
 
-  // Danh sách đơn gần đây (nhiều dòng)
   const [recentRows] = await db.query(
     `SELECT o.id, o.status, o.total, o.created_at, u.full_name as customer_name
      FROM orders o JOIN users u ON u.id = o.user_id ORDER BY o.created_at DESC LIMIT 10`
@@ -67,7 +68,7 @@ async function getProductById(id) {
 async function createProduct(body) {
   const { name, category_id, description, image, brand, variants } = body;
   if (!name || !category_id) throw new Error('BadRequest');
-  let slug = slugify(name) || 'sp-' + Date.now();
+  let slug = toSlug(name) || 'sp-' + Date.now();
   const [ex] = await db.query('SELECT id FROM products WHERE slug = ?', [slug]);
   if (ex?.length) slug = slug + '-' + Date.now();
   await db.query(

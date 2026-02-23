@@ -1,8 +1,0 @@
-#!/bin/sh
-# Lan cuoi xoa "Co-authored-by: Cursor" truoc khi tao commit (ca khi commit qua UI)
-FILE="$1"
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-if [ -n "$FILE" ] && [ -f "$FILE" ] && [ -f "$ROOT/scripts/strip-cursor-coauthor.js" ]; then
-  node "$ROOT/scripts/strip-cursor-coauthor.js" "$FILE" 2>/dev/null || true
-fi
-exit 0
