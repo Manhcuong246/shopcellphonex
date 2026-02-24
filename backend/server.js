@@ -36,7 +36,16 @@ app.use('/api/staff', staffRoutes);
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.use((err, req, res, next) => {
-  res.status(500).json({ message: 'Lỗi server' });
+  const msg = err.message;
+  if (msg === 'BadRequest') return res.status(400).json({ message: 'Thiếu email hoặc mật khẩu' });
+  if (msg === 'Unauthorized') return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
+  if (msg === 'EmailExists') return res.status(409).json({ message: 'Email đã được sử dụng' });
+  console.error(err);
+  const isDev = process.env.NODE_ENV !== 'production';
+  res.status(500).json({
+    message: 'Lỗi server',
+    ...(isDev && { error: msg, stack: err.stack }),
+  });
 });
 
 const PORT = process.env.PORT || 5000;
