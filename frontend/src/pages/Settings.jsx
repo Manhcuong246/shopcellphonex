@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '@/api/axios';
+import api, { getApiOrigin } from '@/api/axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,8 +33,9 @@ export function Settings() {
     return null;
   }
 
+  const apiOrigin = getApiOrigin();
   const avatarSrc = user.avatar
-    ? (user.avatar.startsWith('http') || user.avatar.startsWith('/') ? user.avatar : `/api/${user.avatar}`)
+    ? (user.avatar.startsWith('http') ? user.avatar : `${apiOrigin}${user.avatar.startsWith('/') ? user.avatar : `/api/${user.avatar}`}`)
     : DEFAULT_AVATAR;
 
   const handleProfileSubmit = async (e) => {

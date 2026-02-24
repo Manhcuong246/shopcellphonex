@@ -2,8 +2,10 @@ import axios from 'axios';
 
 const TOKEN_KEY = 'token';
 
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
@@ -48,6 +50,10 @@ export function setAccessToken(token) {
 
 export function getAccessToken() {
   return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getApiOrigin() {
+  return baseURL.startsWith('http') ? new URL(baseURL).origin : '';
 }
 
 export default api;
